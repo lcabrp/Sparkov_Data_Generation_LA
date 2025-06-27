@@ -29,11 +29,28 @@ This version is modified from the version v0.5 to parallelize the work using `mu
 
 Because of the way it parallelize the work (chunking transaction generation by chunking the customer list), there will be multiple transaction files generated per profile. Also not that if the number of customers is small, there may be empty files (i.e. files where no customer in the chunk matched the profile). This is expected.
 
+### Handling Empty Files
+
+To clean up empty transaction files (those containing only headers), you can use the included utility script:
+
+```bash
+python cleanup_empty_csvs.py <OUTPUT_FOLDER> -d "|" -r
+```
+
+This will remove all empty CSV files from the output directory. Use the `--dry-run` flag to preview which files would be deleted without actually removing them.
+
 With standard profiles, it was benchmarked as generating ~95MB/thread/min. With a 64 cores/128 threads AMD E3, I was able to generate 1.4TB of data, 4.5B transactions, in just under 2h, as opposed to days when running the previous versions.
 
-The generation code is originally based on code by [Josh Plotkin](https://github.com/joshplotkin/data_generation). Change log of modifications to original code are below.
+The generation code is originally based on code by [Brandon Harris (namebrandon)](https://github.com/namebrandon/Sparkov_Data_Generation). All modifications and enhancements build upon his excellent foundation. Change log of modifications to original code are below.
 
 ## Change Log
+
+### v1.1
+
+- Optimized transaction data format by removing redundant customer information
+- Transaction files now only include SSN as customer identifier instead of duplicating all customer details
+- Added utility script (`cleanup_empty_csvs.py`) to remove empty transaction files
+- These changes were made as enhancements to the original Sparkov Data Generation project
 
 ### v1.0
 
