@@ -122,10 +122,18 @@ def main():
         '-d', '--delimiter',
         type=str,
         default=',',
-        help='Field delimiter used in CSV files (default: ",")'
+        help='Field delimiter used in CSV files (default: ",", use "pipe" for "|")'
     )
     
     args = parser.parse_args()
+    
+    # Handle special delimiter values
+    if args.delimiter.lower() == 'pipe':
+        delimiter = '|'
+    elif args.delimiter.lower() == 'tab':
+        delimiter = '\t'
+    else:
+        delimiter = args.delimiter
     
     try:
         # Convert to absolute path for clarity in output
@@ -141,12 +149,12 @@ def main():
             
         print(f"Processing directory: {directory_path}")
         print(f"Mode: {'Dry run (no files will be deleted)' if args.dry_run else 'Delete empty files'}")
-        print(f"Delimiter: '{args.delimiter}'")
+        print(f"Delimiter: '{delimiter}'")
         print(f"Recursive: {'Yes' if args.recursive else 'No'}")
         
         files_checked, files_deleted = cleanup_directory(
             directory_path, 
-            delimiter=args.delimiter,
+            delimiter=delimiter,
             dry_run=args.dry_run, 
             verbose=args.verbose,
             recursive=args.recursive
@@ -168,6 +176,7 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+
 
 
 
