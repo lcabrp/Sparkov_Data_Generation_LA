@@ -12,16 +12,21 @@ from datagen_customer import headers
 
 
 fake = Faker()
+
+# CHANGE 2025-06-27: Modified transaction headers to eliminate redundant customer data
+# Previously included all customer headers, now only includes SSN as customer identifier
+# This reduces data duplication since customer details are already in customers.csv
 transaction_headers = [
-    'trans_num', 
-    'trans_date', 
+    'ssn',           # Customer identifier - sufficient to join back to customer data
+    'trans_num',
+    'trans_date',
     'trans_time',
-    'unix_time', 
-    'category', 
-    'amt', 
-    'is_fraud', 
-    'merchant', 
-    'merch_lat', 
+    'unix_time',
+    'category',
+    'amt',
+    'is_fraud',
+    'merchant',
+    'merch_lat',
     'merch_long'
 ]
 
@@ -42,6 +47,9 @@ class Customer:
         self.raw = raw.strip().split('|')
         self.attrs = self.parse_customer(raw)
         self.fraud_dates = []
+        # CHANGE 2025-06-27: Extract only SSN for transaction records to eliminate redundant data
+        # SSN is the first field in customer records and serves as unique identifier
+        self.ssn = self.raw[0]  # SSN is at index 0 in customer headers
 
     def print_trans(self, trans, is_fraud, fraud_dates):
         is_traveling = trans[1]
@@ -67,7 +75,10 @@ class Customer:
             merch_long = fake.coordinate(center=float(cust_long),radius=rad)
 
             if (is_fraud == 0 and t[1] not in fraud_dates) or is_fraud == 1:
-                features = self.raw + t + [chosen_merchant, str(merch_lat), str(merch_long)]
+                # CHANGE 2025-06-27: Only include SSN instead of full customer record (self.raw)
+                # This eliminates redundant customer data in transaction files
+                # Customer details can be retrieved by joining on SSN with customers.csv
+                features = [self.ssn] + t + [chosen_merchant, str(merch_lat), str(merch_long)]
                 print("|".join(features))
 
 
@@ -110,7 +121,10 @@ def main(customer_file, profile_file, start_date, end_date, out_path=None, start
     # generate appropriate number of transactions
     with open(customer_file, 'r') as f:
         f.readline()
-        print("|".join(headers + transaction_headers))
+        # CHANGE 2025-06-27: Use only transaction_headers instead of headers + transaction_headers
+        # This eliminates redundant customer data columns in transaction files
+        # transaction_headers now includes only SSN as customer identifier
+        print("|".join(transaction_headers))
         line_num = 0
         fail = False
         # skip lines out of range
